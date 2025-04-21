@@ -1,73 +1,12 @@
-from flask import Flask, request, jsonify
-from bs4 import BeautifulSoup
-import requests
-from urllib.parse import urlparse
+
+from flask import Flask
+from endpoints.check_news import check_news_bp
+from endpoints.scrape import scraper_bp
 
 app = Flask(__name__)
 
-# Define supported domains and their parsing logic
-SUPPORTED_DOMAINS = {
-    "aljazeera.net": {
-        "title_tag": {"name": "h1", "attrs": {"class": "compact-featured-area__title"}},
-        # "content_tag": {"name": "h1", "attrs": {"class": "article-title"}},
-        "date_tag": {"name": "span", "attrs": {"class": "article-dates__published"}}
-    },
-    "echoroukonline.com": {
-        "title_tag": {"name": "h1", "attrs": {"class": "ech-sgmn__title ech-sgmn__sdpd"}},
-        # "content_tag": {"name": "h1", "attrs": {"class": "article-title"}},
-        "date_tag": {"name": "time", "attrs": {"class": "ech-card__mtil"}}
-    },
-    "alarabiya.net": {
-        "title_tag": {"name": "h1", "attrs": {"class": "headingInfo_title"}},
-        "date_tag": {"name": "time", "attrs": {"class": ""}}
-    },
-    "bbc.com/arabic": {
-        "title_tag": {"name": "span", "attrs": {"class": "css-s2yxgf"}},
-        "content_tag": {"name": "p", "attrs": {"class": "css-1bamlcy"}},
-    },
-    "elkhabar.com": {
-        "title_tag": {"name": "h1", "attrs": {"class": ""}},
-        "content_tag": {"name": "p", "attrs": {"class": ""}},
-    },
-}
-
-def scrape_article(url):
-    domain = urlparse(url).netloc.replace("www.", "")
-    
-    if domain not in SUPPORTED_DOMAINS:
-        return None, f"Unsupported domain: {domain}"
-    
-    rules = SUPPORTED_DOMAINS[domain]
-
-    try:
-        res = requests.get(url)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, "html.parser")
-
-        title_element = soup.find(**rules["title_tag"])
-        date_element = soup.find(**rules["date_tag"])
-
-        title = title_element.get_text(strip=True) if title_element else "Title not found"
-        pub_date = date_element.get_text(strip=True) if date_element else "Publication date not found"
-
-        return {"title": title, "publication_date": pub_date}, None
-
-    except Exception as e:
-        return None, f"Scraping error: {str(e)}"
-
-@app.route("/scrape", methods=["POST"])
-def scrape():
-    data = request.get_json()
-    url = data.get("url")
-
-    if not url:
-        return jsonify({"error": "URL is required"}), 400
-
-    result, error = scrape_article(url)
-    if error:
-        return jsonify({"error": error}), 400
-
-    return jsonify(result), 200
+app.register_blueprint(check_news_bp)
+app.register_blueprint(scraper_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
