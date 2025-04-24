@@ -26,8 +26,9 @@ SUPPORTED_DOMAINS = {
         "content_tag": {"name": "p", "attrs": {"class": "css-1bamlcy"}},
     },
     "elkhabar.com": {
-        "title_tag": {"name": "h1", "attrs": {"class": ""}},
-        "content_tag": {"name": "p", "attrs": {"class": ""}},
+        "title_tag": {"name": "h1"},
+        "content_tag": {"name": "p", "attrs": {"class": "module-article-section overlay-wine"}},
+        "date_tag": {"name": "li", "attrs": {"class":"stronger overlay-theme size-26 text-uppercase"}}
     },
 }
 
